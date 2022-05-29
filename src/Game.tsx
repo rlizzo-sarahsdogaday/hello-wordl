@@ -4,6 +4,7 @@ import dictionary from "./dictionary.json";
 import { Clue, clue, describeClue, violation } from "./clue";
 import { Keyboard } from "./Keyboard";
 import targetList from "./targets.json";
+import images from "./images.json";
 import {
   describeSeed,
   dictionarySet,
@@ -16,6 +17,8 @@ import {
   urlParam,
 } from "./util";
 import { decode, encode } from "./base64";
+import randomInteger from 'random-int';
+
 
 enum GameState {
   Playing,
@@ -82,8 +85,21 @@ function parseUrlGameNumber(): number {
   return gameNumber >= 1 && gameNumber <= 1000 ? gameNumber : 1;
 }
 
+function getWonImagePath(): string {
+  let imageArray: Array<string> = images;
+  const size = imageArray.length;
+  const index = randomInteger(0, size-1);
+  const imagePath = imageArray.at(index.valueOf());
+  return imagePath !== undefined ? imagePath : "";
+}
+
+function showWonImage(): string {
+  const imagePath = getWonImagePath();
+  return `<img src=${imagePath}>`
+}
+
 function Game(props: GameProps) {
-  const [gameState, setGameState] = useState(GameState.Playing);
+const [gameState, setGameState] = useState(GameState.Playing);
   const [guesses, setGuesses] = useState<string[]>([]);
   const [currentGuess, setCurrentGuess] = useState<string>("");
   const [challenge, setChallenge] = useState<string>(initChallenge);
@@ -201,6 +217,8 @@ function Game(props: GameProps) {
       if (currentGuess === target) {
         setHint(gameOver("won"));
         setGameState(GameState.Won);
+
+        
       } else if (guesses.length + 1 === props.maxGuesses) {
         setHint(gameOver("lost"));
         setGameState(GameState.Lost);
@@ -208,6 +226,7 @@ function Game(props: GameProps) {
         setHint("");
         speak(describeClue(clue(currentGuess, target)));
       }
+
     }
   };
 
@@ -326,6 +345,16 @@ function Game(props: GameProps) {
           : seed
           ? `${describeSeed(seed)} — length ${wordLength}, game ${gameNumber}`
           : "playing a random game"}
+      </div>
+        <img  
+         src={gameState === GameState.Won ?   
+            getWonImagePath()
+            :
+            ""
+          }
+          alt=""
+        />
+      <div>
       </div>
       <p>
         <button
